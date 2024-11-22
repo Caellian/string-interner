@@ -102,7 +102,7 @@ where
 
     /// Returns the span for the given symbol if any.
     fn symbol_to_span(&self, symbol: S) -> Option<Span> {
-        let index = symbol.to_usize();
+        let index = symbol.into();
         self.ends.get(index).copied().map(|to| {
             let from = self.ends.get(index.wrapping_sub(1)).copied().unwrap_or(0);
             Span { from, to }
@@ -111,7 +111,7 @@ where
 
     /// Returns the span for the given symbol if any.
     unsafe fn symbol_to_span_unchecked(&self, symbol: S) -> Span {
-        let index = symbol.to_usize();
+        let index = symbol.into();
         // SAFETY: The function is marked unsafe so that the caller guarantees
         //         that required invariants are checked.
         let to = unsafe { *self.ends.get_unchecked(index) };

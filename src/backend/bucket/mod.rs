@@ -8,7 +8,7 @@ mod interned_str;
 use self::{bucket::OpenBucket, interned_str::InternedStr};
 use super::{Backend, PhantomBackend};
 use crate::{
-    symbol::expect_valid_symbol,
+    symbol::{assume_valid_symbol, expect_valid_symbol},
     DefaultSymbol, Symbol,
 };
 use alloc::vec::Vec;
@@ -126,14 +126,14 @@ where
 
     #[inline]
     fn resolve(&self, symbol: Self::Symbol) -> Option<&'i str> {
-        self.spans.get(symbol.to_usize()).map(InternedStr::as_str)
+        self.spans.get(symbol.into()).map(InternedStr::as_str)
     }
 
     #[inline]
     unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &'i str {
         // SAFETY: The function is marked unsafe so that the caller guarantees
         //         that required invariants are checked.
-        unsafe { self.spans.get_unchecked(symbol.to_usize()).as_str() }
+        unsafe { self.spans.get_unchecked(symbol.into()).as_str() }
     }
 
     #[inline]
@@ -390,7 +390,11 @@ where
             return None;
         }
         let span = self.current_span;
-        let symbol = expect_valid_symbol(span);
+        let symbol = unsafe {
+            // SAFETY: Symbol is produced from already stored value index, so `span` must
+            //         be a valid symbol value.
+            assume_valid_symbol(span)
+        };
         let span = unsafe {
             // SAFETY: Only new items can be added to spans, so any previously valid index
             //         will always be valid.

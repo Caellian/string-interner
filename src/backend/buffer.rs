@@ -169,7 +169,7 @@ where
 
     #[inline]
     fn resolve(&self, symbol: Self::Symbol) -> Option<&str> {
-        match self.resolve_index_to_str(symbol.to_usize()) {
+        match self.resolve_index_to_str(symbol.into()) {
             None => None,
             Some((bytes, _)) => str::from_utf8(bytes).ok(),
         }
@@ -183,7 +183,7 @@ where
     unsafe fn resolve_unchecked(&self, symbol: Self::Symbol) -> &str {
         // SAFETY: The function is marked unsafe so that the caller guarantees
         //         that required invariants are checked.
-        unsafe { self.resolve_index_to_str_unchecked(symbol.to_usize()) }
+        unsafe { self.resolve_index_to_str_unchecked(symbol.into()) }
     }
 
     #[inline]
@@ -348,7 +348,7 @@ where
                 // SAFETY: Within the iterator all indices given to `resolv_index_to_str`
                 //         are properly pointing to the start of each interned string.
                 let string = unsafe { str::from_utf8_unchecked(bytes) };
-                let symbol = S::try_from_usize(self.next)?;
+                let symbol = S::try_from(self.next).ok()?;
                 self.next = next;
                 self.remaining -= 1;
                 Some((symbol, string))
