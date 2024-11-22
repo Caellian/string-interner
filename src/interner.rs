@@ -118,6 +118,14 @@ where
             backend: B::with_capacity(cap),
         }
     }
+
+    pub fn with_backend(backend: B) -> Self {
+        Self {
+            dedup: HashMap::default(),
+            hasher: Default::default(),
+            backend,
+        }
+    }
 }
 
 impl<'i, B, H> StringInterner<'i, B, H>
